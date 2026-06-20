@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>108</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <meta name="theme-color" content="#B5451B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root {
+      --bg-top: #B5451B; /* Saffron */
+      --bg-bottom: #1a0a00; /* Deep Maroon/Black */
+      --gold: #FFD700;
+      --gold-glow: rgba(255, 215, 0, 0.4);
+      --text: #ffffff;
+      --btn-plus: #FF6B35;
+      --btn-plus-active: #E85A2A;
+      --btn-minus: #8a3a1f;
+      --btn-minus-active: #6e2e18;
+      --radius: 120px;
+      --circumference: calc(2 * 3.14159 * var(--radius));
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      height: 100vh;
+      height: 100dvh;
+      background: linear-gradient(135deg, var(--bg-top), var(--bg-bottom));
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background-color 0.3s;
+    }
+
+    body.flash {
+      animation: golden-flash 0.5s ease-out;
+    }
+
+    @keyframes golden-flash {
+      0% { box-shadow: inset 0 0 100px var(--gold); background: var(--gold); }
+      100% { box-shadow: inset 0 0 0 var(--gold); }
+    }
+
+    /* Header area */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .app-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      opacity: 0.7;
+    }
+
+    .reset-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      opacity: 0.6;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reset-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+      z-index: 2;
+    }
+
+    .reset-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%;
+      background-color: var(--gold);
+      opacity: 0.4;
+      z-index: 1;
+      transition: height 1.5s linear;
+    }
+
+    .reset-btn.holding .reset-fill {
+      height: 100%;
+    }
+
+    /* Main Display */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .ring-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .progress-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.1);
+      stroke-width: 8;
+    }
+
+    .progress-ring-path {
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 12;
+      stroke-linecap: round;
+      stroke-dasharray: var(--circumference);
+      stroke-dashoffset: var(--circumference);
+      transition: stroke-dashoffset 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: drop-shadow(0 0 8px var(--gold-glow));
+    }
+
+    .count-display {
+      font-size: 100px;
+      font-weight: 800;
+      line-height: 1;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 2;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .message {
+      position: absolute;
+      bottom: -40px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gold);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.5s ease;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .session-info {
+      font-size: 12px;
+      opacity: 0.5;
+      margin-top: 60px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 30px;
+      padding-bottom: max(30px, env(safe-area-inset-bottom));
+    }
+
+    .btn {
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      cursor: pointer;
+      outline: none;
+      transition: transform 0.1s, box-shadow 0.1s, background-color 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .btn-minus {
+      width: 70px;
+      height: 70px;
+      background-color: var(--btn-minus);
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .btn-minus:active {
+      background-color: var(--btn-minus-active);
+    }
+
+    .btn-plus {
+      width: 100px;
+      height: 100px;
+      background-color: var(--btn-plus);
+      font-size: 48px;
+      box-shadow: 0 12px 32px rgba(255, 107, 53, 0.4);
+    }
+    .btn-plus:active {
+      background-color: var(--btn-plus-active);
+    }
+
+    .pulse {
+      animation: pulse 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 215, 0, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="app-title">108</div>
+    <button class="reset-btn" id="resetBtn" aria-label="Reset count">
+      <div class="reset-fill" id="resetFill"></div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <div class="ring-container" id="ringContainer">
+      <svg class="progress-ring" viewBox="0 0 260 260">
+        <circle class="progress-ring-bg" cx="130" cy="130" r="120"></circle>
+        <circle class="progress-ring-path" id="progressRing" cx="130" cy="130" r="120"></circle>
+      </svg>
+      <div class="count-display" id="countDisplay">0</div>
+      <div class="message" id="message">🙏 108 Complete</div>
+    </div>
+    <div class="session-info" id="sessionInfo"></div>
+  </main>
+
+  <div class="controls">
+    <button class="btn btn-minus" id="minusBtn" aria-label="Decrease count">−</button>
+    <button class="btn btn-plus" id="plusBtn" aria-label="Increase count">+</button>
+  </div>
+
+  <script>
+    // Constants
+    const GOAL = 108;
+    const MILESTONES = [27, 54, 81, 108];
+    const RADIUS = 120;
+    const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+    // Elements
+    const countDisplay = document.getElementById('countDisplay');
+    const progressRing = document.getElementById('progressRing');
+    const minusBtn = document.getElementById('minusBtn');
+    const plusBtn = document.getElementById('plusBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const messageEl = document.getElementById('message');
+    const ringContainer = document.getElementById('ringContainer');
+    const sessionInfo = document.getElementById('sessionInfo');
+
+    // State
+    let count = 0;
+    let wakeLock = null;
+
+    // Initialization
+    function init() {
+      // Load saved state
+      const savedCount = localStorage.getItem('108_count');
+      if (savedCount !== null) {
+        count = parseInt(savedCount, 10);
+      }
+      
+      const lastSession = localStorage.getItem('108_last_session');
+      if (lastSession) {
+        sessionInfo.textContent = `Last session: ${lastSession}`;
+      }
+
+      updateUI(false);
+      setupEventListeners();
+      registerServiceWorker();
+    }
+
+    // Update UI
+    function updateUI(animate = true) {
+      if (!animate) {
+        progressRing.style.transition = 'none';
+      } else {
+        progressRing.style.transition = 'stroke-dashoffset 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+      }
+
+      countDisplay.textContent = count;
+      
+      const progress = Math.min(count / GOAL, 1);
+      const dashoffset = CIRCUMFERENCE * (1 - progress);
+      progressRing.style.strokeDashoffset = dashoffset;
+
+      // Completion state
+      if (count >= GOAL) {
+        ringContainer.classList.add('pulse');
+        messageEl.classList.add('show');
+        if (count === GOAL && animate) {
+          saveSession();
+        }
+      } else {
+        ringContainer.classList.remove('pulse');
+        messageEl.classList.remove('show');
+      }
+
+      if (!animate) {
+        // Trigger reflow to apply no-transition immediately
+        progressRing.getBoundingClientRect();
+      }
+    }
+
+    function saveSession() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateString = now.toLocaleDateString();
+      const str = `${GOAL} \u00b7 Today ${timeString}`; // u00b7 is a middle dot
+      localStorage.setItem('108_last_session', str);
+      sessionInfo.textContent = `Last session: ${str}`;
+    }
+
+    function checkMilestone(newCount) {
+      if (MILESTONES.includes(newCount)) {
+        if (navigator.vibrate) {
+          navigator.vibrate([100, 50, 100]);
+        }
+        document.body.classList.remove('flash');
+        void document.body.offsetWidth; // trigger reflow
+        document.body.classList.add('flash');
+      } else {
+        if (navigator.vibrate) {
+          navigator.vibrate(50); // Light tap for normal increment
+        }
+      }
+    }
+
+    // Actions
+    function increment() {
+      requestWakeLock();
+      count++;
+      localStorage.setItem('108_count', count);
+      updateUI();
+      checkMilestone(count);
+    }
+
+    function decrement() {
+      if (count > 0) {
+        count--;
+        localStorage.setItem('108_count', count);
+        updateUI();
+        if (navigator.vibrate) navigator.vibrate(30);
+      }
+    }
+
+    function triggerReset() {
+      if (navigator.vibrate) navigator.vibrate([200]);
+      count = 0;
+      localStorage.setItem('108_count', count);
+      updateUI();
+    }
+
+    // Event Listeners
+    function setupEventListeners() {
+      // Button taps
+      plusBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); increment(); });
+      minusBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); decrement(); });
+
+      // Keyboard support
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowRight') {
+          increment();
+        } else if (e.code === 'ArrowDown' || e.code === 'ArrowLeft') {
+          decrement();
+        }
+      });
+
+      // Long press reset
+      let holdTimer = null;
+      const startHold = (e) => {
+        e.preventDefault();
+        resetBtn.classList.add('holding');
+        holdTimer = setTimeout(() => {
+          triggerReset();
+          resetBtn.classList.remove('holding');
+        }, 1500);
+      };
+      
+      const endHold = () => {
+        if (holdTimer) {
+          clearTimeout(holdTimer);
+          holdTimer = null;
+        }
+        resetBtn.classList.remove('holding');
+      };
+
+      resetBtn.addEventListener('pointerdown', startHold);
+      resetBtn.addEventListener('pointerup', endHold);
+      resetBtn.addEventListener('pointerleave', endHold);
+      resetBtn.addEventListener('contextmenu', e => e.preventDefault());
+      
+      // Request wake lock on interaction
+      document.addEventListener('pointerdown', requestWakeLock, { once: true });
+    }
+
+    // Wake Lock
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator && !wakeLock) {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          wakeLock.addEventListener('release', () => {
+            wakeLock = null;
+          });
+        } catch (err) {
+          console.log(`Wake Lock error: ${err.name}, ${err.message}`);
+        }
+      }
+    }
+
+    // Re-request wake lock when page becomes visible
+    document.addEventListener('visibilitychange', () => {
+      if (wakeLock !== null && document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    });
+
+    // Service Worker Registration
+    function registerServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(err => {
+            console.log('SW registration failed: ', err);
+          });
+        });
+      }
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
