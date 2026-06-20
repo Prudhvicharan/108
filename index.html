@@ -188,10 +188,11 @@
     /* Controls */
     .controls {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
       padding: 30px;
-      padding-bottom: max(30px, env(safe-area-inset-bottom));
+      padding-bottom: max(40px, env(safe-area-inset-bottom));
     }
 
     .btn {
@@ -268,8 +269,8 @@
   </main>
 
   <div class="controls">
-    <button class="btn btn-minus" id="minusBtn" aria-label="Decrease count">−</button>
     <button class="btn btn-plus" id="plusBtn" aria-label="Increase count">+</button>
+    <button class="btn btn-minus" id="minusBtn" aria-label="Decrease count">−</button>
   </div>
 
   <script>
@@ -355,14 +356,14 @@
     function checkMilestone(newCount) {
       if (MILESTONES.includes(newCount)) {
         if (navigator.vibrate) {
-          navigator.vibrate([100, 50, 100]);
+          navigator.vibrate([200, 100, 200]);
         }
         document.body.classList.remove('flash');
         void document.body.offsetWidth; // trigger reflow
         document.body.classList.add('flash');
       } else {
         if (navigator.vibrate) {
-          navigator.vibrate(50); // Light tap for normal increment
+          navigator.vibrate(150); // Clear vibration for every normal increment
         }
       }
     }
