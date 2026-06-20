@@ -279,6 +279,12 @@
     <button class="btn btn-minus" id="minusBtn" aria-label="Decrease count">−</button>
   </div>
 
+  <!-- iOS Haptics Hack Wrapper -->
+  <div style="position: absolute; opacity: 0; pointer-events: none; z-index: -1;">
+    <input type="checkbox" switch id="iosHapticSwitch">
+    <label for="iosHapticSwitch" id="iosHapticLabel">Haptic</label>
+  </div>
+
   <script>
     // Constants
     const GOAL = 108;
@@ -392,15 +398,34 @@
       }
     }
 
+    function fireHaptic(isMilestone = false) {
+      // 1. Android Standard Vibration
+      if (navigator.vibrate) {
+        navigator.vibrate(isMilestone ? [200, 100, 200] : 150);
+      }
+      
+      // 2. iOS Safari 17.4+ Switch Hack
+      const iosLabel = document.getElementById('iosHapticLabel');
+      if (iosLabel) {
+        if (isMilestone) {
+          iosLabel.click();
+          setTimeout(() => iosLabel.click(), 150);
+          setTimeout(() => iosLabel.click(), 300);
+        } else {
+          iosLabel.click();
+        }
+      }
+    }
+
     function checkMilestone(newCount) {
       if (MILESTONES.includes(newCount)) {
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        fireHaptic(true);
         playSound('chime');
         document.body.classList.remove('flash');
         void document.body.offsetWidth; // trigger reflow
         document.body.classList.add('flash');
       } else {
-        if (navigator.vibrate) navigator.vibrate(150);
+        fireHaptic(false);
         playSound('tick');
       }
     }
@@ -419,12 +444,12 @@
         count--;
         localStorage.setItem('108_count', count);
         updateUI();
-        if (navigator.vibrate) navigator.vibrate(30);
+        fireHaptic(false);
       }
     }
 
     function triggerReset() {
-      if (navigator.vibrate) navigator.vibrate([200]);
+      fireHaptic(true);
       count = 0;
       localStorage.setItem('108_count', count);
       updateUI();
@@ -443,7 +468,7 @@
         }
         soundOnIcon.style.display = soundEnabled ? 'block' : 'none';
         soundOffIcon.style.display = soundEnabled ? 'none' : 'block';
-        if (navigator.vibrate) navigator.vibrate(50);
+        fireHaptic(false);
       });
 
       // Keyboard support
